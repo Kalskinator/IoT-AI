@@ -31,15 +31,22 @@ while True:
 
         # Parse data as a list of floats
         try:
-            values = [float(value) for value in raw_data.split(',')]
+            # values = [float(value) for value in raw_data.split(',')]
+            values = [value for value in raw_data.split(',')]
             print(f"Parsed values: {values}")
         except ValueError:
             print("Error: Could not parse some values as float. Skipping.")
             continue
 
+        # # Save data to CSV
+        # timestamp = time.time()
+        # with open("lab2/Data/temperature_raw.csv", "a", newline="") as f:
+        #     writer = csv.writer(f, delimiter=",")
+        #     writer.writerow( values)  # Combine timestamp with values into one row
+
         # Save data to CSV
         timestamp = time.time()
-        with open("lab2/Data/temperature.csv", "a", newline="") as f:
+        with open("lab2/Data/acceleration_raw.csv", "a", newline="") as f:
             writer = csv.writer(f, delimiter=",")
             writer.writerow( values)  # Combine timestamp with values into one row
 
