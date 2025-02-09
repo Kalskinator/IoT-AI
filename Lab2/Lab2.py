@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-"""Task A2.1: Temperature Logging and Collection (3 points - Mandatory)
+r"""Task A2.1: Temperature Logging and Collection (3 points - Mandatory)
 In this task, you should record the temperature data from Arduino Nano RP2040.
 The frequency of the record is to be at least 1 Hz (1 second). Record the data
 for at least 15 minutes (900 data rows or more). To make the temperature vary
@@ -28,7 +28,7 @@ Turn on the grids
 Add legend on the top right corner - temperature
 """
 
-def temperature_data_visualization():
+def TaskA2_1_II():
     # Read the CSV file
     df = pd.read_csv('lab2/Data/temperature.csv')
     # Plot the data
@@ -41,7 +41,7 @@ def temperature_data_visualization():
     plt.legend(loc='upper right')
     plt.show()
 
-"""Task A2.2: Motion Logging - Acc/Gyr and Collection (5 points - Mandatory)
+r"""Task A2.2: Motion Logging - Acc/Gyr and Collection (5 points - Mandatory)
 In this task, you should record the motion data from Arduino Nano RP2040.
 The frequency of the record is to be at least 2 Hz (0.5 second). Record the
 data for at least 10 minutes (1200 rows or more). You should collect both
@@ -82,7 +82,7 @@ threshold accordingly for deleting stationary data. The threshold might be
 different for different axes (2pt-Mandatory)
 """
 
-def acc_gyro_data_visualization():
+def TaskA2_2_II():
     # Read the CSV file
     df = pd.read_csv('lab2/Data/acceleration.csv')
     print(df.info())
@@ -101,7 +101,7 @@ def acc_gyro_data_visualization():
     plt.legend(loc='upper right')
     plt.show()
 
-def data_manipulation():
+def TaskA2_2_III():
     # Read the CSV file
     df = pd.read_csv('lab2/Data/acceleration.csv')
 
@@ -129,11 +129,63 @@ def data_manipulation():
     plt.legend(loc='upper right')
     plt.show()
 
+r"""Task A2.3: Frozen! (5 points- Mandatory)
+This is a dataset of collecting in/out temperature data over 5 months in
+ (appx. 97000 data rows): Temperature Readings : IOT DevicesLinks to an
+   external site.
+
+I- Visualize the indoor and outdoor temperature in one plot with different
+ colors of your choice for the last week (start from the top 02-12-2018 to 08-12-2018). 
+ (2 pts-Mandatory)
+
+II- Do these modifications on the dataframe made from the CSV dataset: (3pts Mandatory)
+
+Change the "In" and "Out" text of the "Out\In" column to 1 and 0 respectively.
+Separate the date and time in the "noted_date" column, into two separate columns.
+Keep only the data of the last day 08-12-2018, and remove the rest of the rows with the appropriate function
+Submit the modified CSV and your code together.
+"""
+
+def TaskA2_3_I():
+    df = pd.read_csv('lab2/Data/IOT-Temperature.csv')
+
+    df['noted_date'] = pd.to_datetime(df['noted_date'], dayfirst=True)
+
+    df = df[(df['noted_date'] >= pd.to_datetime('2018-12-02')) & (df['noted_date'] <= pd.to_datetime('2018-12-08'))]
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(df[df['out/in'] == "Out"]['noted_date'], df[df['out/in'] == "Out"]['temp'], color='red', label='Outdoor Temperature')
+    plt.plot(df[df['out/in'] == "In"]['noted_date'], df[df['out/in'] == "In"]['temp'], color='blue', label='Indoor Temperature')
+    plt.xlabel('Date')
+    plt.ylabel('Temperature')
+    plt.title('Indoor and Outdoor Temperature')
+    plt.grid(True)
+    plt.legend(loc='upper right')
+    plt.show()
+
+def TaskA2_3_II():
+    df = pd.read_csv('lab2/Data/IOT-Temperature.csv')
+
+    df['out/in'] = df['out/in'].apply(lambda x: 1 if x == 'Out' else 0)
+
+    df['noted_date'] = pd.to_datetime(df['noted_date'], dayfirst=True)
+    df['date'] = df['noted_date'].dt.date
+    df['time'] = df['noted_date'].dt.time
+    
+    df = df[df['date'] == pd.to_datetime('2018-12-08').date()]
+
+    df = df.drop('noted_date', axis=1)
+
+    df.to_csv('lab2/Data/IOT-Temperature-Modified.csv', index=False)
+    
 if __name__ == "__main__":
-    # temperature_data_visualization()
-    # acc_gyro_data_visualization()
-    data_manipulation()
+    
+    # TaskA2_1_II()
 
+    # TaskA2_2_II()
+    # TaskA2_2_III()
+    
+    # TaskA2_3_I()
+    # TaskA2_3_II()
 
-
-
+    pass
