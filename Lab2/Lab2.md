@@ -38,6 +38,7 @@ def TaskA2_1_II():
     plt.legend(loc="upper right")
     plt.show()
 ```
+![TaskA2_1_II](Figures/TaskA2_1_Figure_1.png)
  
 ## Task A2.2: Motion Logging - Acc/Gyr  and Collection (5 points - Mandatory)
 
@@ -83,6 +84,7 @@ def TaskA2_2_II():
     plt.legend(loc="upper right")
     plt.show()
 ```
+![TaskA2_2_II](Figures/TaskA2_2_Figure_1.png)
 
 ### III- (Manipulate the data) With one of the the functions mentioned in the instruction above, write a code which deletes rows of data from your dataset that the acceleration is 0 or close to 0. This will compress your signals to look something like the right graphs below in Fig. 9. Visualize the data again with the above criteria in a line graph. Pay attention that you need to look at the data and define the threshold accordingly for deleting stationary data. The threshold might be different for different axes  (2pt-Mandatory)
 
@@ -107,6 +109,7 @@ def TaskA2_2_III():
     plt.legend(loc="upper right")
     plt.show()
 ```
+![TaskA2_2_III](Figures/TaskA2_2_Figure_2.png)
 
 ## Task A2.3: Frozen! (5 points- Mandatory)
 
@@ -132,6 +135,7 @@ def TaskA2_3_I():
     plt.legend(loc="upper right")
     plt.show()
 ```
+![TaskA2_3_I](Figures/TaskA2_3_Figure_1.png)
 
 ### II- Do these modifications on the dataframe made from the CSV dataset: (3pts Mandatory)
 
