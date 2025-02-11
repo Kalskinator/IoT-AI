@@ -8,6 +8,34 @@ Hint: To turn your logging data into CSV file, there are some third-party softwa
 
 ### I- Collect the data in a CSV file and submit it with the rest of your results (2pts-Mandatory)
 
+```c++
+#include <Arduino.h>
+#include <Arduino_LSM6DSOX.h>
+
+void setup() {
+    Serial.begin(115200);
+    while (!Serial);  // Wait for Serial Monitor to open
+
+    if (!IMU.begin()) {
+        Serial.println("Failed to initialize IMU!");
+        while (1);
+    }
+    Serial.println("Timestamp,Temperature(C)");
+}
+
+void loop() {
+    float temperature;
+    if (IMU.temperatureAvailable()) {
+        temperature = 0;
+        IMU.readTemperatureFloat(temperature);
+        Serial.print(millis());      // Timestamp (ms)
+        Serial.print(",");
+        Serial.println(temperature); // Temperature in Celsius
+    }
+    delay(1000); // Log every second
+}
+```
+
 [**Data/temperature.csv**](./Data/temperature.csv)
 ```csv
 Timesteps,Temperature
@@ -48,6 +76,60 @@ Hint: To record date and time you can use RTC module and library, but for the sa
 
 ### I- Collect the data in a CSV file and submit it with the rest of your results (2pts-Mandatory)
 
+```c++
+#include <Arduino.h>
+#include <Arduino_LSM6DSOX.h>
+#include <TimeLib.h> 
+
+time_t startTime;
+unsigned long startMillis;
+
+void setup() {
+    Serial.begin(115200);
+    while (!Serial);  // Wait for Serial Monitor to open
+
+    if (!IMU.begin()) {
+        Serial.println("Failed to initialize IMU!");
+        while (1);
+    }
+    Serial.println("Date,Time,Ax,Ay,Az,Gx,Gy,Gz");
+    startMillis = millis();
+    startTime = now(); 
+}
+
+void loop() {
+    float ax, ay, az;
+    float gx, gy, gz;
+    if (IMU.accelerationAvailable() && IMU.gyroscopeAvailable()) {
+        IMU.readAcceleration(ax, ay, az);
+        IMU.readGyroscope(gx, gy, gz);
+
+        unsigned long currentMillis = millis();
+        time_t currentTime = startTime + (currentMillis - startMillis) / 1000;
+
+        char timeBuffer[9];
+        snprintf(timeBuffer, sizeof(timeBuffer), "%02d:%02d:%02d", hour(currentTime), minute(currentTime), second(currentTime));
+
+        // Print the date and time
+        Serial.print("2025-02-07");
+        Serial.print(",");
+        Serial.print(timeBuffer);
+        Serial.print(",");
+        Serial.print(ax); // Acceleration in X
+        Serial.print(",");
+        Serial.print(ay); // Acceleration in Y
+        Serial.print(",");
+        Serial.print(az); // Acceleration in Z
+        Serial.print(",");
+        Serial.print(gx); // Gyroscope in X
+        Serial.print(",");
+        Serial.print(gy); // Gyroscope in Y
+        Serial.print(",");
+        Serial.println(gz); // Gyroscope in Z
+    }
+    delay(500); // Log every 0.5 second
+}
+```
 [**Data/acceleration.csv**](./Data/acceleration.csv)
 ```csv
 Date,Time,Ax,Ay,Az,Gx,Gy,Gz
@@ -392,14 +474,7 @@ Hint: Use bins parameter equal to (50, 50) and vmax equal to 400 for the "hist2d
 
 Submit both the CSV file and your code.
 
-[**Data/Climate2016_Normalized.csv**](Data/Climate2016_Normalized.csv)
-```csv
-Date Time,press (mbar),Temp (degC),Temppot (K),Tempdew (degC),relativehum (%),VPressmax (mbar),VPressact (mbar),VPressdef (mbar),sh (g/kg),H2OC (mmol/mol),relativeho (g/m**3),windvelo (m/s),max. windvelo (m/s),winddeg (deg),windveloX,windveloY,norm_windveloX,norm_windveloY
-01.01.2016 00:00:00,999.08,-0.01,273.22,-0.44,96.9,6.1,5.91,0.19,3.69,5.92,1271.32,1.16,2.04,192.4,-1.1329398428676345,-0.2490929795137935,0.5171044370624132,0.4746623558695411
-01.01.2016 00:10:00,999.03,0.01,273.25,-0.41,97.0,6.11,5.93,0.18,3.7,5.94,1271.16,1.01,2.12,211.6,-0.8602442034844783,-0.5292257650297797,0.5325611625178573,0.4536701422746951
-01.01.2016 00:20:00,999.07,0.06,273.29,-0.36,97.0,6.13,5.95,0.18,3.71,5.96,1270.97,0.8,1.52,203.8,-0.7319677342798598,-0.3228362370819122,0.5398320311367123,0.4691362828995447
-01.01.2016 00:30:00,999.09,0.07,273.3,-0.36,96.9,6.14,5.95,0.19,3.71,5.96,1270.93,0.77,1.64,184.2,-0.7679321474628328,-0.05639341178827622,0.537793523803068,0.48910261668327476
-```
+
 ```python
 def TaskA2_5():
     df = pd.read_csv("lab2/Data/Climate2016.csv")
@@ -415,7 +490,7 @@ def TaskA2_5():
     )
 
     df.to_csv("lab2/Data/Climate2016_Normalized.csv", index=False)
-    # Plot the data before normalization
+
     plt.figure(figsize=(12, 6))
     plt.subplot(1, 2, 1)
     plt.hist2d(df["winddeg (deg)"], df["windvelo (m/s)"], bins=50, vmax=400)
@@ -423,7 +498,6 @@ def TaskA2_5():
     plt.xlabel("Wind Direction [deg]")
     plt.ylabel("Wind Velocity [m/s]")
 
-    # Plot the data after normalization
     plt.subplot(1, 2, 2)
     plt.hist2d(df["norm_windveloX"], df["norm_windveloY"], bins=50, vmax=400)
     plt.colorbar()
@@ -432,5 +506,15 @@ def TaskA2_5():
 
     plt.tight_layout()
     plt.show()
+```
+![TaskA2_5](Figures/TaskA2_5_Figure_1.png)
+
+[**Data/Climate2016_Normalized.csv**](Data/Climate2016_Normalized.csv)
+```csv
+Date Time,press (mbar),Temp (degC),Temppot (K),Tempdew (degC),relativehum (%),VPressmax (mbar),VPressact (mbar),VPressdef (mbar),sh (g/kg),H2OC (mmol/mol),relativeho (g/m**3),windvelo (m/s),max. windvelo (m/s),winddeg (deg),windveloX,windveloY,norm_windveloX,norm_windveloY
+01.01.2016 00:00:00,999.08,-0.01,273.22,-0.44,96.9,6.1,5.91,0.19,3.69,5.92,1271.32,1.16,2.04,192.4,-1.1329398428676345,-0.2490929795137935,0.5171044370624132,0.4746623558695411
+01.01.2016 00:10:00,999.03,0.01,273.25,-0.41,97.0,6.11,5.93,0.18,3.7,5.94,1271.16,1.01,2.12,211.6,-0.8602442034844783,-0.5292257650297797,0.5325611625178573,0.4536701422746951
+01.01.2016 00:20:00,999.07,0.06,273.29,-0.36,97.0,6.13,5.95,0.18,3.71,5.96,1270.97,0.8,1.52,203.8,-0.7319677342798598,-0.3228362370819122,0.5398320311367123,0.4691362828995447
+01.01.2016 00:30:00,999.09,0.07,273.3,-0.36,96.9,6.14,5.95,0.19,3.71,5.96,1270.93,0.77,1.64,184.2,-0.7679321474628328,-0.05639341178827622,0.537793523803068,0.48910261668327476
 ```
 

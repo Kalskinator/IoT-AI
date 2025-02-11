@@ -302,7 +302,7 @@ def TaskA2_5():
     )
 
     df.to_csv("lab2/Data/Climate2016_Normalized.csv", index=False)
-    # Plot the data before normalization
+
     plt.figure(figsize=(12, 6))
     plt.subplot(1, 2, 1)
     plt.hist2d(df["winddeg (deg)"], df["windvelo (m/s)"], bins=50, vmax=400)
@@ -310,7 +310,6 @@ def TaskA2_5():
     plt.xlabel("Wind Direction [deg]")
     plt.ylabel("Wind Velocity [m/s]")
 
-    # Plot the data after normalization
     plt.subplot(1, 2, 2)
     plt.hist2d(df["norm_windveloX"], df["norm_windveloY"], bins=50, vmax=400)
     plt.colorbar()
