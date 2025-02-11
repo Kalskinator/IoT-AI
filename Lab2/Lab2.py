@@ -201,9 +201,9 @@ def TaskA2_4_III():
 
     id1, id2, id3 = 6, 28, 36
 
-    participant_1 = df_merged[df_merged["id"] == id1].copy()
-    participant_2 = df_merged[df_merged["id"] == id2].copy()
-    participant_3 = df_merged[df_merged["id"] == id3].copy()
+    participant_1 = df_merged[df_merged["id"] == id1]
+    participant_2 = df_merged[df_merged["id"] == id2]
+    participant_3 = df_merged[df_merged["id"] == id3]
 
     max_len = max(len(participant_1), len(participant_2), len(participant_3))
 
@@ -288,6 +288,39 @@ def TaskA2_4_V():
     print(f"Test set size: {len(test_df)}")
 
 
+def TaskA2_5():
+    df = pd.read_csv("lab2/Data/Climate2016.csv")
+
+    df["windveloX"] = df["windvelo (m/s)"] * np.cos(np.radians(df["winddeg (deg)"]))
+    df["windveloY"] = df["windvelo (m/s)"] * np.sin(np.radians(df["winddeg (deg)"]))
+
+    df["norm_windveloX"] = (df["windveloX"] - df["windveloX"].min()) / (
+        df["windveloX"].max() - df["windveloX"].min()
+    )
+    df["norm_windveloY"] = (df["windveloY"] - df["windveloY"].min()) / (
+        df["windveloY"].max() - df["windveloY"].min()
+    )
+
+    df.to_csv("lab2/Data/Climate2016_Normalized.csv", index=False)
+    # Plot the data before normalization
+    plt.figure(figsize=(12, 6))
+    plt.subplot(1, 2, 1)
+    plt.hist2d(df["winddeg (deg)"], df["windvelo (m/s)"], bins=50, vmax=400)
+    plt.colorbar()
+    plt.xlabel("Wind Direction [deg]")
+    plt.ylabel("Wind Velocity [m/s]")
+
+    # Plot the data after normalization
+    plt.subplot(1, 2, 2)
+    plt.hist2d(df["norm_windveloX"], df["norm_windveloY"], bins=50, vmax=400)
+    plt.colorbar()
+    plt.xlabel("Wind X [m/s]")
+    plt.ylabel("Wind Y [m/s]")
+
+    plt.tight_layout()
+    plt.show()
+
+
 if __name__ == "__main__":
 
     # TaskA2_1_II()
@@ -302,6 +335,8 @@ if __name__ == "__main__":
     # TaskA2_4_II()
     # TaskA2_4_III()
     # TaskA2_4_IV()
-    TaskA2_4_V()
+    # TaskA2_4_V()
+
+    TaskA2_5()
 
     pass

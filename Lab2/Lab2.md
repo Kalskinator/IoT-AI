@@ -275,9 +275,9 @@ def TaskA2_4_III():
 
     id1, id2, id3 = 6, 28, 36
 
-    participant_1 = df_merged[df_merged["id"] == id1].copy()
-    participant_2 = df_merged[df_merged["id"] == id2].copy()
-    participant_3 = df_merged[df_merged["id"] == id3].copy()
+    participant_1 = df_merged[df_merged["id"] == id1]
+    participant_2 = df_merged[df_merged["id"] == id2]
+    participant_3 = df_merged[df_merged["id"] == id3]
 
     max_len = max(len(participant_1), len(participant_2), len(participant_3))
 
@@ -347,6 +347,14 @@ def TaskA2_4_IV():
     df.to_csv("lab2/Data/aw_fb_data_Normalized_Standardized.csv", index=False)
 ```
 [**Data/aw_fb_data_Normalized_Standardized.csv**](Data/aw_fb_data_Normalized_Standardized.csv)
+```csv
+Unnamed: 0,X1,age,gender,height,weight,steps,hear_rate,calories,distance,entropy_heart,entropy_setps,resting_heart,corr_heart_steps,norm_heart,intensity_karvonen,sd_norm_heart,steps_times_distance,device,activity,steps_standardized,hear_rate_standardized
+1,1,0.05263157894736842,1,0.5208333333333334,0.31111111111111117,10.7714285714286,78.5313023809524,0.344532850241546,0.0083268571428571,6.2216117239699,6.11634856607516,59.0,1.0,19.5313023809524,0.138519875042215,1.0,0.0896921469387755,apple watch,Lying,-0.4434454826518626,-0.2656916476716687
+2,2,0.05263157894736842,1,0.5208333333333334,0.31111111111111117,11.4753246753247,78.4533902777777,3.28762546296296,0.0088963463203463,6.2216117239699,6.11634856607516,59.0,1.0,19.4533902777777,0.137967306934594,1.0,0.102088462450104,apple watch,Lying,-0.44028588253285755,-0.2684114632223761
+3,3,0.05263157894736842,1,0.5208333333333334,0.31111111111111117,12.1792207792208,78.5408250801282,9.484,0.0094658354978355,6.2216117239699,6.11634856607516,59.0,1.0,19.5408250801282,0.138587411915803,1.0,0.115286500387924,apple watch,Lying,-0.43712628241385254,-0.2653592219733791
+4,4,0.05263157894736842,1,0.5208333333333334,0.31111111111111117,12.8831168831169,78.6282598824786,10.1545555555556,0.0100353246753247,6.2216117239699,6.11634856607516,59.0,1.0,19.6282598824786,0.139207516897011,1.0,0.129286260752235,apple watch,Lying,-0.4339666822948475,-0.2623069807243856
+5,5,0.05263157894736842,1,0.5208333333333334,0.31111111111111117,13.587012987013,78.715694684829,10.8251111111111,0.0106048138528139,6.2216117239699,6.11634856607516,59.0,0.982815702386645,19.715694684829,0.13982762187822,0.241567027237508,0.144087743543037,apple watch,Lying,-0.43080708217584246,-0.259254739475392
+```
 
 ### V- Split the dataset into three categories with the following distribution: Train (70%), Validation (15%), and Test (15%) (1pts - Mandatory)
 ```python
@@ -383,3 +391,46 @@ Use the "Hist2d" function to visualize the data before and after changes. It sho
 Hint: Use bins parameter equal to (50, 50) and vmax equal to 400 for the "hist2d" function to get the better results.
 
 Submit both the CSV file and your code.
+
+[**Data/Climate2016_Normalized.csv**](Data/Climate2016_Normalized.csv)
+```csv
+Date Time,press (mbar),Temp (degC),Temppot (K),Tempdew (degC),relativehum (%),VPressmax (mbar),VPressact (mbar),VPressdef (mbar),sh (g/kg),H2OC (mmol/mol),relativeho (g/m**3),windvelo (m/s),max. windvelo (m/s),winddeg (deg),windveloX,windveloY,norm_windveloX,norm_windveloY
+01.01.2016 00:00:00,999.08,-0.01,273.22,-0.44,96.9,6.1,5.91,0.19,3.69,5.92,1271.32,1.16,2.04,192.4,-1.1329398428676345,-0.2490929795137935,0.5171044370624132,0.4746623558695411
+01.01.2016 00:10:00,999.03,0.01,273.25,-0.41,97.0,6.11,5.93,0.18,3.7,5.94,1271.16,1.01,2.12,211.6,-0.8602442034844783,-0.5292257650297797,0.5325611625178573,0.4536701422746951
+01.01.2016 00:20:00,999.07,0.06,273.29,-0.36,97.0,6.13,5.95,0.18,3.71,5.96,1270.97,0.8,1.52,203.8,-0.7319677342798598,-0.3228362370819122,0.5398320311367123,0.4691362828995447
+01.01.2016 00:30:00,999.09,0.07,273.3,-0.36,96.9,6.14,5.95,0.19,3.71,5.96,1270.93,0.77,1.64,184.2,-0.7679321474628328,-0.05639341178827622,0.537793523803068,0.48910261668327476
+```
+```python
+def TaskA2_5():
+    df = pd.read_csv("lab2/Data/Climate2016.csv")
+
+    df["windveloX"] = df["windvelo (m/s)"] * np.cos(np.radians(df["winddeg (deg)"]))
+    df["windveloY"] = df["windvelo (m/s)"] * np.sin(np.radians(df["winddeg (deg)"]))
+
+    df["norm_windveloX"] = (df["windveloX"] - df["windveloX"].min()) / (
+        df["windveloX"].max() - df["windveloX"].min()
+    )
+    df["norm_windveloY"] = (df["windveloY"] - df["windveloY"].min()) / (
+        df["windveloY"].max() - df["windveloY"].min()
+    )
+
+    df.to_csv("lab2/Data/Climate2016_Normalized.csv", index=False)
+    # Plot the data before normalization
+    plt.figure(figsize=(12, 6))
+    plt.subplot(1, 2, 1)
+    plt.hist2d(df["winddeg (deg)"], df["windvelo (m/s)"], bins=50, vmax=400)
+    plt.colorbar()
+    plt.xlabel("Wind Direction [deg]")
+    plt.ylabel("Wind Velocity [m/s]")
+
+    # Plot the data after normalization
+    plt.subplot(1, 2, 2)
+    plt.hist2d(df["norm_windveloX"], df["norm_windveloY"], bins=50, vmax=400)
+    plt.colorbar()
+    plt.xlabel("Wind X [m/s]")
+    plt.ylabel("Wind Y [m/s]")
+
+    plt.tight_layout()
+    plt.show()
+```
+
