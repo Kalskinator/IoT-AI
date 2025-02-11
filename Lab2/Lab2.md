@@ -8,7 +8,7 @@ Hint: To turn your logging data into CSV file, there are some third-party softwa
 
 ### I- Collect the data in a CSV file and submit it with the rest of your results (2pts-Mandatory)
 
-**CSV file=**[**Data/temperature.csv**](./Data/temperature.csv)
+[**Data/temperature.csv**](./Data/temperature.csv)
 ```csv
 Timesteps,Temperature
 1,28.58
@@ -47,7 +47,7 @@ Hint: To record date and time you can use RTC module and library, but for the sa
 
 ### I- Collect the data in a CSV file and submit it with the rest of your results (2pts-Mandatory)
 
-**CSV file=**[**Data/acceleration.csv**](./Data/acceleration.csv)
+[**Data/acceleration.csv**](./Data/acceleration.csv)
 ```csv
 Date,Time,Ax,Ay,Az,Gx,Gy,Gz
 2025-02-07,00:00:01,-0.02,0.02,1.00,0.06,0.00,-0.79
@@ -156,7 +156,7 @@ def TaskA2_3_II():
 
     df.to_csv("lab2/Data/IOT-Temperature-Modified.csv", index=False)
 ```
-**CSV file=**[**Data/IOT-Temperature-Modified.csv**](./Data/IOT-Temperature-Modified.csv)
+[**Data/IOT-Temperature-Modified.csv**](./Data/IOT-Temperature-Modified.csv)
 ```csv
 id,room_id/id,temp,out/in,date,time
 __export__.temp_log_196134_bd201015,Room Admin,29,0,2018-12-08,09:30:00
@@ -171,16 +171,196 @@ Dataset #1: A sample of 49 participants using an Apple Watch and a "FitBit" app 
 
 ### I- Based on the instruction on the distribution transformation, transform the "calories" column to take the shape of a distribution close to normal distribution. The current distribution looks something like the below figure. Experiment with different transforms (log, cube, etc.) to find the right one. Use a transform to make the data distribution more consistent, meaning there are values on each column (1pts - Mandatory)
 
+```python
+def TaskA2_4_I():
+    df = pd.read_csv("lab2/Data/aw_fb_data.csv")
 
+    df["log"] = np.log(df["calories"])
+    df["log"].hist()
 
+    plt.show()
+```
+![TaskA2_4_I](Figures/TaskA2_4_Figure_1.png)
 
 ### II- As mentioned before, the data reflects 49 participants. Make a copy of the original dataframe and Find a way to keep one sample from each participant.  Therefore, the new dataframe should have 49 rows. You should use a specific function or a mix of functions in the instruction. Afterward, visualize the "age", "height", and "weight" of the participants on each subplot (stacked plot). Grids should be on, Legends should be on top, and The color of the line plot for each subplot should be different. (2pts - Optional)
 
+```python
+def plot_participant_data(ax, x, y_data, labels, colors, title, xlabel, ylabel):
+    ax.stackplot(x, *y_data, labels=labels, colors=colors)
+    ax.set_title(title)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.legend(loc="upper center")
+    ax.grid(True)
+
+
+def TaskA2_4_II():
+    df = pd.read_csv("lab2/Data/aw_fb_data.csv")
+    df_copy = df.groupby(["age", "height", "weight"]).first().reset_index()
+
+    _, axs = plt.subplots(2, 2, figsize=(10, 8))
+
+    plot_participant_data(
+        axs[0, 0],
+        df_copy.index,
+        [df_copy["age"]],
+        ["Age"],
+        ["red"],
+        "Age of Participants",
+        "Participant",
+        "Age",
+    )
+    plot_participant_data(
+        axs[0, 1],
+        df_copy.index,
+        [df_copy["height"]],
+        ["Height"],
+        ["green"],
+        "Height of Participants",
+        "Participant",
+        "Height (cm)",
+    )
+    plot_participant_data(
+        axs[1, 0],
+        df_copy.index,
+        [df_copy["weight"]],
+        ["Weight"],
+        ["blue"],
+        "Weight of Participants",
+        "Participant",
+        "Weight (kg)",
+    )
+    plot_participant_data(
+        axs[1, 1],
+        np.arange(len(df_copy)),
+        [df_copy["age"], df_copy["height"], df_copy["weight"]],
+        ["Age", "Height", "Weight"],
+        ["red", "green", "blue"],
+        "Age, Height, and Weight of Participants",
+        "Participant",
+        "Age, Height, and Weight",
+    )
+
+    plt.tight_layout()
+    plt.show()
+```
+![TaskA2_4_II](Figures/TaskA2_4_Figure_2.png)
+
 ### III- Visualize "steps", "heart_rate", and "calories" of the first three participants in three plots with subplots (stacked plot), in a way that the steps of each three participants are depicted with different colored lines, the same for other two datasets. The legends should be on the top corner of each plot (participant #1, participant #2, participant#3) (2pts - Mandatory)
 
+```python
+def pad_and_stackplot(ax, data, max_len, labels, colors, title, ylabel):
+    padded_data = [
+        np.pad(participant_data, (0, max_len - len(participant_data))) for participant_data in data
+    ]
+    ax.stackplot(np.arange(max_len), padded_data, labels=labels, colors=colors)
+    ax.set_title(title)
+    ax.set_ylabel(ylabel)
+    ax.legend(loc="upper right")
+    ax.grid(True)
+
+
+def TaskA2_4_III():
+    # Read the CSV file
+    df = pd.read_csv("lab2/Data/aw_fb_data.csv")
+
+    df_unique = pd.read_csv("lab2/Data/aw_fb_data_Unique.csv")
+    df_unique["id"] = range(1, len(df_unique) + 1)
+    unique_id_cols = ["age", "height", "weight", "gender"]
+    df_merged = df.merge(df_unique[unique_id_cols + ["id"]], on=unique_id_cols, how="left")
+
+    id1, id2, id3 = 6, 28, 36
+
+    participant_1 = df_merged[df_merged["id"] == id1].copy()
+    participant_2 = df_merged[df_merged["id"] == id2].copy()
+    participant_3 = df_merged[df_merged["id"] == id3].copy()
+
+    max_len = max(len(participant_1), len(participant_2), len(participant_3))
+
+    _, axs = plt.subplots(3, 1, figsize=(15, 8))
+
+    pad_and_stackplot(
+        axs[0],
+        [participant_1["steps"], participant_2["steps"], participant_3["steps"]],
+        max_len,
+        labels=[f"Participant #{id1}", f"Participant #{id2}", f"Participant #{id3}"],
+        colors=["red", "green", "blue"],
+        title="Steps of First Three Participants",
+        ylabel="Steps",
+    )
+
+    pad_and_stackplot(
+        axs[1],
+        [participant_1["hear_rate"], participant_2["hear_rate"], participant_3["hear_rate"]],
+        max_len,
+        labels=[f"Participant #{id1}", f"Participant #{id2}", f"Participant #{id3}"],
+        colors=["red", "green", "blue"],
+        title="Heart Rate of First Three Participants",
+        ylabel="Heart Rate",
+    )
+
+    pad_and_stackplot(
+        axs[2],
+        [participant_1["calories"], participant_2["calories"], participant_3["calories"]],
+        max_len,
+        labels=[f"Participant #{id1}", f"Participant #{id2}", f"Participant #{id3}"],
+        colors=["red", "green", "blue"],
+        title="Calories of First Three Participants",
+        ylabel="Calories",
+    )
+
+    plt.tight_layout()
+    plt.show()
+```
+![TaskA2_4_III](Figures/TaskA2_4_Figure_3.png)
+
 ### IV- Normalize the "age", "height", and "weight", and Standardize "steps" and "heart rate" columns in a separate column at the end of the dataframe (1pts - Mandatory)
+```python
+def normalize_column(df, column_name):
+    min_value = np.min(df[column_name])
+    max_value = np.max(df[column_name])
+    df[f"{column_name}"] = (df[column_name] - min_value) / (max_value - min_value)
+    return df
+
+
+def standardize_column(df, column_name):
+    mean_target = np.mean(df[column_name])
+    sd_target = np.std(df[column_name])
+    df[f"{column_name}_standardized"] = (df[column_name] - mean_target) / (sd_target)
+    return df
+
+
+def TaskA2_4_IV():
+    df = pd.read_csv("lab2/Data/aw_fb_data.csv")
+
+    df = normalize_column(df, "age")
+    df = normalize_column(df, "height")
+    df = normalize_column(df, "weight")
+
+    df = standardize_column(df, "steps")
+    df = standardize_column(df, "hear_rate")
+
+    df.to_csv("lab2/Data/aw_fb_data_Normalized_Standardized.csv", index=False)
+```
+[**Data/aw_fb_data_Normalized_Standardized.csv**](Data/aw_fb_data_Normalized_Standardized.csv)
 
 ### V- Split the dataset into three categories with the following distribution: Train (70%), Validation (15%), and Test (15%) (1pts - Mandatory)
+```python
+def TaskA2_4_V():
+    df = pd.read_csv("lab2/Data/aw_fb_data.csv")
+
+    train_df, temp_df = train_test_split(df, test_size=0.3, random_state=42)
+    validation_df, test_df = train_test_split(temp_df, test_size=0.5, random_state=42)
+
+    print(f"Train set size: {len(train_df)}")
+    print(f"Validation set size: {len(validation_df)}")
+    print(f"Test set size: {len(test_df)}")
+```
+Output:
+* Train set size: 4384
+* Validation set size: 940
+* Test set size: 940
+
 
 Submit both the CSV file and your code.
 

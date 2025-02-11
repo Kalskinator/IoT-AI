@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
 
 
 def TaskA2_1_II():
@@ -242,6 +243,51 @@ def TaskA2_4_III():
     plt.show()
 
 
+def normalize_column(df, column_name):
+    min_value = np.min(df[column_name])
+    max_value = np.max(df[column_name])
+    df[f"{column_name}"] = (df[column_name] - min_value) / (max_value - min_value)
+    return df
+
+
+def standardize_column(df, column_name):
+    mean_target = np.mean(df[column_name])
+    sd_target = np.std(df[column_name])
+    df[f"{column_name}_standardized"] = (df[column_name] - mean_target) / (sd_target)
+    return df
+
+
+def TaskA2_4_IV():
+    df = pd.read_csv("lab2/Data/aw_fb_data.csv")
+
+    # Normalize "age", "height", and "weight"
+    # df[["age", "height", "weight"]] = MinMaxScaler().fit_transform(df[["age", "height", "weight"]])
+
+    df = normalize_column(df, "age")
+    df = normalize_column(df, "height")
+    df = normalize_column(df, "weight")
+
+    # Standardize "steps" and "heart rate"
+    # df["steps_standardized"] = StandardScaler().fit_transform(df[["steps"]])
+    # df["heart_rate_standardized"] = StandardScaler().fit_transform(df[["hear_rate"]])
+
+    df = standardize_column(df, "steps")
+    df = standardize_column(df, "hear_rate")
+
+    df.to_csv("lab2/Data/aw_fb_data_Normalized_Standardized.csv", index=False)
+
+
+def TaskA2_4_V():
+    df = pd.read_csv("lab2/Data/aw_fb_data.csv")
+
+    train_df, temp_df = train_test_split(df, test_size=0.3, random_state=42)
+    validation_df, test_df = train_test_split(temp_df, test_size=0.5, random_state=42)
+
+    print(f"Train set size: {len(train_df)}")
+    print(f"Validation set size: {len(validation_df)}")
+    print(f"Test set size: {len(test_df)}")
+
+
 if __name__ == "__main__":
 
     # TaskA2_1_II()
@@ -254,6 +300,8 @@ if __name__ == "__main__":
 
     # TaskA2_4_I()
     # TaskA2_4_II()
-    TaskA2_4_III()
+    # TaskA2_4_III()
+    # TaskA2_4_IV()
+    TaskA2_4_V()
 
     pass
