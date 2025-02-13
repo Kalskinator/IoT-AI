@@ -163,3 +163,5 @@ logs/
 models/
 
 .DS_Store
+
+Lab3/Data/MNIST
