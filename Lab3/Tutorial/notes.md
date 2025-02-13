@@ -523,3 +523,73 @@ plt.show()
  
 
 For more info please refer to the official documentation of the scikit-learn library: [External Link - SVM](https://scikit-learn.org/stable/modules/svm.html)
+
+
+# Section4: Unsupervised Machine Learning
+
+**Unsupervised machine learning** is the process of inferring underlying hidden patterns from historical data. 
+
+-An Example:
+
+Picture a toddler. The child knows what the family cat looks like (provided they have one) but has no idea that there are a lot of other cats in the world that are all different. The thing is, if the kid sees another cat, he or she will still be able to recognize it as a cat through a set of features such as two ears, four legs, a tail, fur, whiskers, etc.
+
+In machine learning, this kind of prediction is called unsupervised learning. But when parents tell the child that the new animal is a cat – drumroll – that’s considered supervised learning.
+
+## 4.1. Clustering (K-Means)
+
+K-means clustering is an unsupervised algorithm that groups unlabelled data into different clusters. The K in its title represents the number of clusters that will be created. This is something that should be known prior to the model training. For example, if K=4 then 4 clusters would be created, and if K=7 then 7 clusters would be created. The k-means algorithm is used in fraud detection, error detection, and confirming existing clusters in the real world.
+
+Conventional k-means require only a few steps. The first step is to randomly select k centroids, where k is equal to the number of clusters you choose. Centroids are data points representing the center of a cluster.
+
+The quality of the cluster assignments is determined by computing the sum of the squared error (SSE)Links to an external site. after the centroids converge, or match the previous iteration’s assignment. The SSE is defined as the sum of the squared Euclidean distances of each point to its closest centroid. Since this is a measure of error, the objective of k-means is to try to minimize this value. Figure 6 shows the centroids and SSE updating through the first five iterations from two different runs of the k-means algorithm on the same dataset.
+
+Let's show how it works with a small example. The problem is clustering a simple, unlabeled dataset on the X-Y plane. A method called the "Elbow method" is used to find the optimal number of clusters in the code below. Then the centroids are found through iterations.
+
+```python
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+
+#defined dataset on the X-Y plane
+x = [4, 5, 10, 4, 3, 11, 14 , 6, 10, 12]
+y = [21, 19, 24, 17, 16, 25, 24, 22, 21, 21]
+
+plt.scatter(x, y)
+plt.show()
+
+#making tuples of (X,Y) with the zip function
+#the inertia is the same as the SSE (sum of squared error) that was defined above
+data = list(zip(x, y))
+inertias = []
+
+#testing the data on 1 to 11 clusters and calculating the inertia
+for i in range(1,11):
+    kmeans = KMeans(n_clusters=i)
+    kmeans.fit(data)
+    inertias.append(kmeans.inertia_)
+
+plt.plot(range(1,11), inertias, marker='o')
+plt.title('Elbow method')
+plt.xlabel('Number of clusters')
+plt.ylabel('Inertia')
+plt.show()
+
+#You can see on the plot that 2 is an elbow point. 2 is a good value for K, so we retrain and visualize the result.
+kmeans = KMeans(n_clusters=2)
+kmeans.fit(data)
+plt.scatter(x, y, c=kmeans.labels_)
+plt.show()
+
+#Now lets add the centroids of each cluster to the plot
+
+centroids  = kmeans.cluster_centers_ 
+plt.scatter(x, y, c=kmeans.labels_)
+plt.scatter(centroids[:,0], centroids[:,1], c="red")
+plt.show()
+```
+For more information and other clustering methods refer to the documentation: [External Link - Sci-kit Learn: Clustering](https://scikit-learn.org/stable/modules/clustering.html)
+
+ 
+
+## 4.2. Anomaly detection (Supplementary)
+
+For more information refer to the documentation: External Link: [Sci-kit learn - Outliers](https://scikit-learn.org/stable/modules/outlier_detection.html)
