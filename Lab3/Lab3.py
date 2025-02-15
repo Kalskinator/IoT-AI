@@ -13,6 +13,8 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import accuracy_score, mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
 
 
 class LinearRegression(nn.Module):
@@ -184,8 +186,25 @@ class TaskA3_II:
             with torch.no_grad():
                 test_outputs = model(test_inputs)
                 _, predicted = torch.max(test_outputs.data, 1)
+                cm = confusion_matrix(test_labels, predicted)
                 accuracy = (predicted == test_labels).sum().item() / len(y_test)
                 print(f"Epoch {epoch+1}/{EPOCHS}, Accuracy: {accuracy*100:.2f}%")
+
+        # Visualize the confusion matrix
+        plt.figure(figsize=(10, 7))
+        sns.heatmap(
+            cm,
+            annot=True,
+            fmt="d",
+            cmap="Blues",
+            xticklabels=["drizzle", "rain", "sun", "snow", "fog"],
+            yticklabels=["drizzle", "rain", "sun", "snow", "fog"],
+        )
+        plt.xlabel("Predicted")
+        plt.ylabel("Actual")
+        plt.title("Confusion Matrix for Linear Regression")
+        plt.show()
+
         return mse_list
 
     def support_vector_machine():
@@ -193,6 +212,10 @@ class TaskA3_II:
 
     def random_forest():
         return ModelTrainer.random_forest(*TaskA3_II.load_data())
+
+
+class TaskA3_III:
+    pass
 
 
 class TaskA3_IV:
@@ -271,12 +294,14 @@ class TaskA3_IV:
 
 
 if __name__ == "__main__":
-    ModelTrainer.visualize_errors(
-        TaskA3_I.linear_regression(), TaskA3_I.support_vector_machine(), TaskA3_I.random_forest()
-    )
+    # ModelTrainer.visualize_errors(
+    #     TaskA3_I.linear_regression(), TaskA3_I.support_vector_machine(), TaskA3_I.random_forest()
+    # )
 
-    ModelTrainer.visualize_errors(
-        TaskA3_II.linear_regression(), TaskA3_II.support_vector_machine(), TaskA3_II.random_forest()
-    )
+    # ModelTrainer.visualize_errors(
+    #     TaskA3_II.linear_regression(), TaskA3_II.support_vector_machine(), TaskA3_II.random_forest()
+    # )
+
+    TaskA3_III
 
     # TaskA3_IV.k_means()
