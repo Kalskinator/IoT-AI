@@ -18,13 +18,45 @@ from sklearn.preprocessing import StandardScaler
 class LinearRegression(nn.Module):
     def __init__(self, input_size, output_size):
         super().__init__()
-        self.input_size = input_size
         self.linear = nn.Linear(input_size, output_size)
 
     def forward(self, x):
-        x = x.view(-1, self.input_size)
         x = torch.sigmoid(self.linear(x))
         return x
+
+
+class ModelTrainer:
+    @staticmethod
+    def support_vector_machine(train_data, train_labels, test_data, test_labels):
+        model = svm.SVC(kernel="linear")
+        model.fit(train_data, train_labels)
+        predictions = model.predict(test_data)
+        accuracy = accuracy_score(test_labels, predictions)
+        mse = mean_squared_error(test_labels, predictions)
+        print(f"SVM Accuracy: {accuracy*100:.2f}%")
+        return mse
+
+    @staticmethod
+    def random_forest(train_data, train_labels, test_data, test_labels):
+        model = RandomForestClassifier(max_depth=10)
+        model.fit(train_data, train_labels)
+        predictions = model.predict(test_data)
+        accuracy = accuracy_score(test_labels, predictions)
+        mse = mean_squared_error(test_labels, predictions)
+        print(f"Random Forest Accuracy: {accuracy*100:.2f}%")
+        return mse
+
+    @staticmethod
+    def visualize_errors(lr_mse, svm_mse, rf_mse):
+        epochs = range(1, len(lr_mse) + 1)
+        plt.plot(epochs, lr_mse, "r", label="LR")
+        plt.plot(epochs, [svm_mse] * len(lr_mse), "g", label="SVM")
+        plt.plot(epochs, [rf_mse] * len(lr_mse), "b", label="RF")
+        plt.xlabel("Epoch")
+        plt.ylabel("MSE")
+        plt.legend(loc="upper right")
+        plt.title("MSE vs Epoch")
+        plt.show()
 
 
 class TaskA3_I:
@@ -63,21 +95,19 @@ class TaskA3_I:
         print(torch.cuda.is_available())
 
         # Initialize the model, loss function, and optimizer
-        linearRegression = LinearRegression(N_INPUTS, N_OUTPUTS)
+        model = LinearRegression(N_INPUTS, N_OUTPUTS)
 
         loss_function = nn.MSELoss()
-        optimizer = optim.Adam(
-            linearRegression.parameters(), LEARNING_RATE
-        )  # defining the optimizer
+        optimizer = optim.Adam(model.parameters(), LEARNING_RATE)  # defining the optimizer
 
-        lr_mse = []
+        mse_list = []
         for epoch in range(EPOCHS):
             for images, labels in train_loader:
                 images, labels = images.to(device), labels.to(device)
                 # Clear gradient buffers because we don't want any gradient from previous epoch to carry forward, dont want to cummulate gradients
                 optimizer.zero_grad()
                 # get output from the model, given the inputs
-                outputs = linearRegression(images)
+                outputs = model(images.view(-1, 28 * 28))
 
                 labels_one_hot = nn.functional.one_hot(labels, num_classes=10).float()
                 # get loss for the predicted output
@@ -86,52 +116,83 @@ class TaskA3_I:
                 loss.backward()
                 # update parameters
                 optimizer.step()
-            lr_mse.append(loss.item())
+            mse_list.append(loss.item())
             correct = 0
             for images, labels in test_loader:
                 images, labels = images.to(device), labels.to(device)
-                outputs = linearRegression(images)
+                outputs = model(images.view(-1, 28 * 28))
                 _, predicted = torch.max(outputs.data, 1)
                 correct += (predicted == labels).sum()
             accuracy = 100 * (correct.item()) / len(test_dataset)
             print("Epoch: {}. Loss: {}. Accuracy: {}".format(epoch, loss.item(), accuracy))
-        return lr_mse
+        return mse_list
 
     def support_vector_machine():
-        train_data, train_labels, test_data, test_labels = TaskA3_I.load_data()
-
-        svm_classifier = svm.SVC(kernel="linear")
-        svm_classifier.fit(train_data, train_labels)
-        svm_predictions = svm_classifier.predict(test_data)
-        svm_accuracy = accuracy_score(test_labels, svm_predictions)
-        mse = mean_squared_error(test_labels, svm_predictions)
-        print("SVM Accuracy: {}".format(svm_accuracy))
-        return [mse] * 10
+        return ModelTrainer.support_vector_machine(*TaskA3_I.load_data())
 
     def random_forest():
-        train_data, train_labels, test_data, test_labels = TaskA3_I.load_data()
-        rf_classifier = RandomForestClassifier(max_depth=10)
-        rf_classifier.fit(train_data, train_labels)
-        rf_predictions = rf_classifier.predict(test_data)
-        rf_accuracy = accuracy_score(test_labels, rf_predictions)
-        mse = mean_squared_error(test_labels, rf_predictions)
-        print("Random Forest Accuracy: {}".format(rf_accuracy))
-        return [mse] * 10
-
-    def visualize_errors(lr_mse, svm_mse, rf_mse):
-        epochs = range(1, len(lr_mse) + 1)
-        plt.plot(epochs, lr_mse, "r", label="LR")
-        plt.plot(epochs, svm_mse, "g", label="SVM")
-        plt.plot(epochs, rf_mse, "b", label="RF")
-        plt.xlabel("Epoch")
-        plt.ylabel("MSE")
-        plt.legend(loc="upper right")
-        plt.title("MSE vs Epoch")
-        plt.show()
+        return ModelTrainer.random_forest(*TaskA3_I.load_data())
 
 
 class TaskA3_II:
-    pass
+
+    def load_data():
+        df = pd.read_csv("./Lab3/Data/seattle-weather.csv")
+        df = df.dropna()
+        df = df.drop(columns=["date"])  # Drop the date column
+        X = df.drop(columns=["weather"])
+        y = df["weather"].map({"drizzle": 0, "rain": 1, "sun": 2, "snow": 3, "fog": 4})
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        scaler = StandardScaler()
+        X_train = scaler.fit_transform(X_train)
+        X_test = scaler.transform(X_test)
+        return X_train, y_train, X_test, y_test
+
+    def linear_regression():
+        X_train, y_train, X_test, y_test = TaskA3_II.load_data()
+
+        EPOCHS = 10000
+        N_INPUTS = X_train.shape[1]
+        N_OUPUTS = 5
+        LEARNING_RATE = 0.01
+
+        model = LinearRegression(N_INPUTS, N_OUPUTS)
+        criterion = nn.MSELoss()
+        optimizer = optim.Adam(model.parameters(), LEARNING_RATE)
+
+        inputs = torch.tensor(X_train, dtype=torch.float32)
+        labels = torch.tensor(y_train.values, dtype=torch.long)
+        test_inputs = torch.tensor(X_test, dtype=torch.float32)
+        test_labels = torch.tensor(y_test.values, dtype=torch.long)
+
+        mse_list = []
+        for epoch in range(EPOCHS):
+            model.train()
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            labels_one_hot = nn.functional.one_hot(labels, num_classes=5).float()
+            loss = criterion(outputs, labels_one_hot)
+            loss.backward()
+            optimizer.step()
+            mse_list.append(loss.item())
+
+            # Print epoch loss
+            print(f"Epoch {epoch+1}/{EPOCHS}, Loss: {loss.item()}")
+
+            # Calculate accuracy
+            model.eval()
+            with torch.no_grad():
+                test_outputs = model(test_inputs)
+                _, predicted = torch.max(test_outputs.data, 1)
+                accuracy = (predicted == test_labels).sum().item() / len(y_test)
+                print(f"Epoch {epoch+1}/{EPOCHS}, Accuracy: {accuracy*100:.2f}%")
+        return mse_list
+
+    def support_vector_machine():
+        return ModelTrainer.support_vector_machine(*TaskA3_II.load_data())
+
+    def random_forest():
+        return ModelTrainer.random_forest(*TaskA3_II.load_data())
 
 
 class TaskA3_IV:
@@ -210,9 +271,12 @@ class TaskA3_IV:
 
 
 if __name__ == "__main__":
-    # lr_mse = TaskA3_I.linear_regression()
-    # svm_mse = TaskA3_I.support_vector_machine()
-    # rf_mse = TaskA3_I.random_forest()
-    # TaskA3_I.visualize_errors(lr_mse, svm_mse, rf_mse)
+    ModelTrainer.visualize_errors(
+        TaskA3_I.linear_regression(), TaskA3_I.support_vector_machine(), TaskA3_I.random_forest()
+    )
 
-    TaskA3_IV.k_means()
+    ModelTrainer.visualize_errors(
+        TaskA3_II.linear_regression(), TaskA3_II.support_vector_machine(), TaskA3_II.random_forest()
+    )
+
+    # TaskA3_IV.k_means()
