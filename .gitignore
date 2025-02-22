@@ -165,3 +165,5 @@ models/
 .DS_Store
 
 Lab3/Data/MNIST
+Lab4/Data/testing
+Lab4/Data/training
