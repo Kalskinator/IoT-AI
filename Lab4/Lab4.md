@@ -1,3 +1,18 @@
+# AI and Data Management for IoT-VT25 Lab 4, Audio Assignment (Mandatory) 20 points
+## 1. Data Collection for The Assignment
+### Your dataset should have 4 various states: 3 words –“Apple”, “Orange”, “Cherry”- and an “unknown” state which no word is said or noise in the background. (You have done this before in your previous semester)
+#### 1) The data should be collected via Arduino built-in microphone.
+#### 2) Extract audio files as Wav format and create a label file for them (Like csv orexcel file)
+#### 3) You should at least have 12 min of input data (3 min for each state. For example20 samplesfor each word)
+#### 4) Use 80% of the data for training and 20% for testing.
+
+[Lab4_Mic_Data_Train_Test_Split](/aleks_lab4_mic-export_train_test_split.zip)
+
+
+## 2. Model and Training the network
+#### 1) In the code file, there is a model (M5) for training, which is a simple CNN model. If you choose to use this model, there is no need to convert the audio files into other formats such as spectrograms. However, if you want to use a more complex CNN model like Wav2Vec 2 (also available in the code file), you should first convert the audio files into another format (e.g., spectrograms).
+
+```python
 import json
 import torchaudio
 from torch.utils.data import Dataset, DataLoader
@@ -87,7 +102,7 @@ class CustomSpeechDataset(Dataset):
         with open(json_path, "r") as f:
             data = json.load(f)
 
-        # Filter files by category (training or testing)
+
         self.files = [item for item in data["files"] if item["category"] == subset]
         self.root_dir = root_dir
 
@@ -100,9 +115,7 @@ class CustomSpeechDataset(Dataset):
 
     def __getitem__(self, idx):
         file_data = self.files[idx]
-        # Load audio file
         waveform, sample_rate = torchaudio.load(f"{self.root_dir}/{file_data['path']}")
-        # Get label
         label = self.label_to_idx[file_data["label"]["label"]]
         return waveform, sample_rate, label
 
@@ -185,45 +198,6 @@ print(f"Available labels: {list(train_set.label_to_idx.keys())}")
 model = M5(n_input=1, n_output=NUM_OF_CLASSES).to(device)
 loss_fn = nn.CrossEntropyLoss()
 
-# x_batch, y_batch = next(iter(train_loader))
-# outputs = model(x_batch.to(device))
-# loss = loss_fn(outputs, y_batch.to(device))
-# print(loss)
-
-
-# _, mini_train_dataset = random_split(train_set, (len(train_set) - 500, 500))
-# mini_train_loader = DataLoader(mini_train_dataset, 20, collate_fn=collate_fn)
-
-
-# optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9)
-
-# num_epochs = 100
-# for epoch in range(num_epochs):
-#     model, _, _ = train_one_epoch(model, mini_train_loader, loss_fn, optimizer, epoch)
-
-# num_epochs = 1
-# for lr in [0.01, 0.001, 0.0001]:
-#     print(f"LR={lr}")
-#     model = M5(n_input=1, n_output=NUM_OF_CLASSES).to(device)
-#     # model = torch.load("model.pt")
-#     optimizer = optim.SGD(model.parameters(), lr=lr, weight_decay=1e-4, momentum=0.9)
-#     for epoch in range(num_epochs):
-#         model, _, _ = train_one_epoch(model, train_loader, loss_fn, optimizer, epoch)
-#     print()
-
-# num_epochs = 5
-
-# for lr in [0.05, 0.04, 0.03, 0.02, 0.01, 0.009, 0.008, 0.007, 0.006, 0.005]:
-#     for wd in [1e-4, 1e-5, 0.0]:
-#         model = M5(n_input=1, n_output=NUM_OF_CLASSES).to(device)
-#         optimizer = optim.SGD(model.parameters(), lr=lr, weight_decay=wd)
-#         print(f"LR={lr}, WD={wd}")
-
-#         for epoch in range(num_epochs):
-#             model, loss, _ = train_one_epoch(model, train_loader, loss_fn, optimizer, epoch)
-#         print()
-
-# 0.03 # wd = 1e-5 is best
 
 lr = 0.03
 wd = 1e-5
@@ -238,7 +212,7 @@ acc_valid_hist = []
 best_loss_valid = torch.inf
 epoch_counter = 0
 
-num_epochs = 100
+num_epochs = 20
 
 for epoch in range(num_epochs):
     # Train
@@ -286,5 +260,113 @@ plt.title("Training and Validation Accuracy")
 
 
 plt.tight_layout()
-plt.savefig("Lab4/Figures/training_curves.png")
+
 plt.show()
+
+```
+
+#### 2) Train the model for at least 50 epochs and report the accuracy.
+
+![Training Curves](/Lab4/Figures/training_curves.png)
+
+#### 3) (Optional) If you want to learn more, you can modify the M5 model by adding additional layers, train the modified model, and then compare its performance with the original M5 model.
+
+# AI and Data Management for IoT-VT25 Lab 4, CSV or Image Assignment (Optional, 10 points)
+## This task is optional. You will get 10 points if you complete it (CSV or Image). The entire structure has been explained in the PowerPoint file. Feel free to ask any questions.
+```python
+import torch
+from torch.utils.data import Dataset, DataLoader
+import matplotlib.pyplot as plt
+import torchvision
+from torchvision import transforms
+import numpy as np
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+
+
+class Net(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(3, 6, 5)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.conv2 = nn.Conv2d(6, 16, 5)
+        self.fc1 = nn.Linear(16 * 5 * 5, 120)
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, 10)
+
+    def forward(self, x):
+        x = self.pool(F.relu(self.conv1(x)))
+        x = self.pool(F.relu(self.conv2(x)))
+        x = torch.flatten(x, 1)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+        return x
+
+
+training_data = torchvision.datasets.CIFAR10(
+    root="./Lab4/data", train=True, transform=transforms.ToTensor()
+)
+test_data = torchvision.datasets.CIFAR10(
+    root="./Lab4/data", train=False, transform=transforms.ToTensor()
+)
+
+batch_size = 64
+train_dataloader = DataLoader(training_data, batch_size=batch_size, shuffle=True)
+test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=False)
+
+classes = (
+    "plane",
+    "car",
+    "bird",
+    "cat",
+    "deer",
+    "dog",
+    "frog",
+    "horse",
+    "ship",
+    "truck",
+)
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print(device)
+
+net = Net()
+
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+
+
+for epoch in range(100):
+    running_loss = 0.0
+    for i, data in enumerate(train_dataloader, 0):
+        inputs, labels = data
+        optimizer.zero_grad()
+
+        outputs = net(inputs)
+        loss = criterion(outputs, labels)
+
+        loss.backward()
+        optimizer.step()
+
+        running_loss += loss.item()
+    print(f"Epoch {epoch}", f" number of images:{i}", "loss: ", running_loss)
+
+correct = 0
+total = 0
+
+with torch.no_grad():
+    for data in test_dataloader:
+        images, labels = data
+        outputs = net(images)
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+print(f"Accuracy of the network on the 10000 test images: {100 * correct / total}%")
+
+torch.save(net.state_dict(), "./Lab4/Models/cifar_net.pth")
+
+```
+62.31% Accuracy
