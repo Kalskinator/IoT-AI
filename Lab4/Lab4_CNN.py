@@ -115,4 +115,4 @@ with torch.no_grad():
 
 print(f"Accuracy of the network on the 10000 test images: {100 * correct / total}%")
 
-torch.save(net.state_dict(), "./Lab4/cifar_net.pth")
+torch.save(net.state_dict(), "./Lab4/Models/cifar_net.pth")
